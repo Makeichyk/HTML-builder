@@ -37,23 +37,27 @@ const mergeFiles = (sourceDir, targetDir, targetFileName) => {
 
 async function makeCopy(src, copy) {
   try {
-    await fs.promises.mkdir(copy, { recursive: true });
-
-    let files = await fs.promises.readdir(src, { withFileTypes: true });
-
-    files.forEach((item) => {
-      let fileCopy = path.join(copy, item.name);
-      let fileSrc = path.join(src, item.name);
-
-      if (item.isDirectory()) {
-        makeCopy(fileSrc, fileCopy);
-      } else {
-        fs.promises.copyFile(fileSrc, fileCopy);
-      }
-    });
+    await fs.promises.rm(copy, { recursive: true });
   } catch (err) {
-    console.log(err);
+    if (err.code === "ENOENT") {
+      console.warn(err.message);
+    } else {
+      throw err;
+    }
   }
+  await fs.promises.mkdir(copy, { recursive: true });
+  let files = await fs.promises.readdir(src, { withFileTypes: true });
+
+  files.forEach((item) => {
+    let fileCopy = path.join(copy, item.name);
+    let fileSrc = path.join(src, item.name);
+
+    if (item.isDirectory()) {
+      makeCopy(fileSrc, fileCopy);
+    } else {
+      fs.promises.copyFile(fileSrc, fileCopy);
+    }
+  });
 }
 
 const readFileAsync = (filePath) => {
