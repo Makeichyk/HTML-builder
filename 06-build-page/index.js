@@ -1,10 +1,83 @@
-const writeFile = require("../02-write-file/write-file");
+// const writeFile = require("../02-write-file/write-file");
 const fs = require("fs");
 const path = require("path");
-const readFileAsync = require("../01-read-file/read-file-async");
+// const readFileAsync = require("../01-read-file/read-file-async");
 const templatePath = path.join(__dirname, "template.html");
-const mergeFiles = require("../05-merge-styles/merge-styles");
-const makeCopy = require("../04-copy-directory/copy-directory");
+// const mergeFiles = require("../05-merge-styles/merge-styles");
+// const makeCopy = require("../04-copy-directory/copy-directory");
+
+const addFile = (fileName, sourceDir, targetDir, targetFileName) => {
+  return readFileAsync(path.join(sourceDir, fileName)).then((fileContent) => {
+    return fs.promises.appendFile(
+      path.join(targetDir, targetFileName),
+      fileContent
+    );
+  });
+};
+
+const mergeFiles = (sourceDir, targetDir, targetFileName) => {
+  return fs.promises
+    .writeFile(path.join(targetDir, targetFileName), "")
+    .then(() =>
+      fs.promises
+        .readdir(sourceDir, { withFileTypes: true })
+        .then((files) =>
+          Promise.all(
+            files
+              .filter(
+                (file) => file.isFile() && path.extname(file.name) === ".css"
+              )
+              .map((file) =>
+                addFile(file.name, sourceDir, targetDir, targetFileName)
+              )
+          )
+        )
+    );
+};
+
+async function makeCopy(src, copy) {
+  try {
+    await fs.promises.mkdir(copy, { recursive: true });
+
+    let files = await fs.promises.readdir(src, { withFileTypes: true });
+
+    files.forEach((item) => {
+      let fileCopy = path.join(copy, item.name);
+      let fileSrc = path.join(src, item.name);
+
+      if (item.isDirectory()) {
+        makeCopy(fileSrc, fileCopy);
+      } else {
+        fs.promises.copyFile(fileSrc, fileCopy);
+      }
+    });
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+const readFileAsync = (filePath) => {
+  let data = "";
+
+  return new Promise((resolve, reject) => {
+    const readStream = new fs.createReadStream(filePath);
+    readStream.on("data", (chunk) => (data += chunk));
+    readStream.on("end", () => resolve(data));
+    readStream.on("error", (error) => reject(error));
+  });
+};
+
+const writeFile = (filePath, content) => {
+  return new Promise((resolve, reject) => {
+    fs.writeFile(filePath, content, (error) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+      resolve();
+    });
+  });
+};
 
 function createDir() {
   const dirPath = path.join(__dirname, "project-dist");
