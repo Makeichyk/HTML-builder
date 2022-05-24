@@ -40,7 +40,7 @@ async function makeCopy(src, copy) {
     await fs.promises.rm(copy, { recursive: true });
   } catch (err) {
     if (err.code === "ENOENT") {
-      console.warn(err.message);
+      // console.warn(err.message);
     } else {
       throw err;
     }
