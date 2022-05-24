@@ -17,7 +17,7 @@ const fileData = (directory) => {
           console.log(resultStr);
         });
       } else {
-        console.log(`Папка - ${item.name}`);
+        // console.log(`Папка - ${item.name}`);
       }
     });
   });
