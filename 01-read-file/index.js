@@ -1,10 +1,9 @@
-const fs = require("fs");
+const readFileAsync = require("./read-file-async");
 const path = require("path");
 
-let data = " ";
+let filePath = path.join(__dirname, "text.txt");
 
-const readStream = new fs.createReadStream(path.join(__dirname, "text.txt"));
-
-readStream.on("data", (chunk)=> (data += chunk));
-readStream.on("end", () => console.log(data));
-readStream.on("error", (error) => console.log("Error", error.message));
+const resultPromise = readFileAsync(filePath);
+resultPromise
+  .then((res) => console.log(res))
+  .catch((error) => console.error(error));
